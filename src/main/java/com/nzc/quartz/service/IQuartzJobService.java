@@ -1,5 +1,6 @@
 package com.nzc.quartz.service;
 
+import java.util.Date;
 import java.util.List;
 
 import com.nzc.quartz.entity.QuartzJob;
@@ -14,6 +15,8 @@ import com.baomidou.mybatisplus.extension.service.IService;
 public interface IQuartzJobService extends IService<QuartzJob> {
 
 	boolean saveAndScheduleJob(QuartzJob quartzJob);
+
+	boolean saveAndScheduleJob(Date date, String param);
 
 	boolean editAndScheduleJob(QuartzJob quartzJob) throws SchedulerException;
 

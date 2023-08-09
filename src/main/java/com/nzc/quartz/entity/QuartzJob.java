@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.util.Date;
 
 import com.baomidou.mybatisplus.annotation.*;
+import lombok.Builder;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -16,6 +17,7 @@ import lombok.Data;
  * @Description: 定时任务在线管理
  */
 @Data
+@Builder
 @TableName("sys_quartz_job")
 public class QuartzJob implements Serializable {
     private static final long serialVersionUID = 1L;

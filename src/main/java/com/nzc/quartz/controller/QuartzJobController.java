@@ -1,6 +1,7 @@
 package com.nzc.quartz.controller;
 
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
@@ -70,6 +71,20 @@ public class QuartzJobController {
 		quartzJobService.saveAndScheduleJob(quartzJob);
 		return Result.ok("创建定时任务成功");
 	}
+
+	@RequestMapping(value = "/add/nonParm", method = RequestMethod.GET)
+	public Result<?> addNonParm() {
+//		List<QuartzJob> list = quartzJobService.list(new QueryWrapper<QuartzJob>().eq("job_class_name", quartzJob.getJobClassName()));
+//		if (list != null && list.size() > 0) {
+//			return Result.error("该定时任务类名已存在");
+//		}
+
+		Date date = new Date(System.currentTimeMillis() + 1000*60);  // 30秒后
+
+		quartzJobService.saveAndScheduleJob(date, "测试参数");
+		return Result.ok("创建定时任务成功");
+	}
+
 
 	/**
 	 * 更新定时任务

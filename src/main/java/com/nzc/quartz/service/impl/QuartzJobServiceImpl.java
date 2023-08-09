@@ -1,12 +1,15 @@
 package com.nzc.quartz.service.impl;
 
-import java.util.List;
+import java.util.Date;
 
 import com.nzc.quartz.common.CommonConstant;
 import com.nzc.quartz.entity.QuartzJob;
 import com.nzc.quartz.exception.MyException;
+import com.nzc.quartz.job.PublishTaskJob;
 import com.nzc.quartz.mapper.QuartzJobMapper;
 import com.nzc.quartz.service.IQuartzJobService;
+import com.nzc.quartz.util.CronUtil;
+import com.nzc.quartz.util.DateUtils;
 import org.quartz.CronScheduleBuilder;
 import org.quartz.CronTrigger;
 import org.quartz.Job;
@@ -53,6 +56,30 @@ public class QuartzJobServiceImpl extends ServiceImpl<QuartzJobMapper, QuartzJob
 	}
 
 	/**
+	 * 前端传参（date）
+	 * 自行组装 param
+	 * @param date
+	 * @param param
+	 */
+	@Override
+	public boolean saveAndScheduleJob(Date date, String param) {
+		String cron = CronUtil.getCron(date);
+		String className =  PublishTaskJob.class.getName();
+		QuartzJob quartzJob = QuartzJob.builder()
+				.createBy("user_song")
+				.createTime(DateUtils.getCurrentTime())
+				.cronExpression(cron)
+				.jobClassName(className)
+				.description(date + "执行下发任务")
+				.parameter(param)
+				.status(0)
+				.build();
+		saveAndScheduleJob(quartzJob);
+
+		return false;
+	}
+
+	/**
 	 * 恢复定时任务
 	 */
 	@Override
@@ -60,6 +87,7 @@ public class QuartzJobServiceImpl extends ServiceImpl<QuartzJobMapper, QuartzJob
 		schedulerDelete(quartzJob.getJobClassName().trim());
 		schedulerAdd(quartzJob.getJobClassName().trim(), quartzJob.getCronExpression().trim(), quartzJob.getParameter());
 		quartzJob.setStatus(CommonConstant.STATUS_NORMAL);
+
 		return this.updateById(quartzJob);
 	}
 
@@ -105,13 +133,23 @@ public class QuartzJobServiceImpl extends ServiceImpl<QuartzJobMapper, QuartzJob
 			scheduler.start();
 
 			// 构建job信息
-			JobDetail jobDetail = JobBuilder.newJob(getClass(jobClassName).getClass()).withIdentity(jobClassName).usingJobData("parameter", parameter).build();
+			JobKey jobKey = new JobKey("JobName-TaskId-" + parameter, "GroupPublishTask-" + jobClassName);
+
+			JobDetail jobDetail = JobBuilder.newJob(getClass(jobClassName).getClass())
+					.withIdentity(jobKey)
+					.usingJobData("parameter", parameter)
+					.storeDurably(true)  // 持久化
+					.build();
 
 			// 表达式调度构建器(即任务执行的时间)
 			CronScheduleBuilder scheduleBuilder = CronScheduleBuilder.cronSchedule(cronExpression);
 
 			// 按新的cronExpression表达式构建一个新的trigger
-			CronTrigger trigger = TriggerBuilder.newTrigger().withIdentity(jobClassName).withSchedule(scheduleBuilder).build();
+			CronTrigger trigger = TriggerBuilder.newTrigger()
+					.withDescription("Publish Trigger")
+					.withIdentity("Trigger-"+ parameter, "Trigger-Group")
+					.withSchedule(scheduleBuilder)
+					.build();
 
 			scheduler.scheduleJob(jobDetail, trigger);
 		} catch (SchedulerException e) {

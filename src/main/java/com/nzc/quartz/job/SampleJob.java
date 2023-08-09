@@ -21,4 +21,8 @@ public class SampleJob implements Job {
 
 		log.info(String.format("Ning zaichun的 普通定时任务 SampleJob !  时间:" + new Date()));
 	}
+
+	public static void main(String[] args) {
+		System.out.println("庆松");
+	}
 }
