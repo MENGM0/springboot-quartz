@@ -13,7 +13,12 @@ public class PublishTask {
     private String Param;
 
     public static void Publish(String param){
+
         log.info("***************************定时下发事件触发， taskId： " + param);
+
+
+        log.info("test1");
     }
+
 
 }
